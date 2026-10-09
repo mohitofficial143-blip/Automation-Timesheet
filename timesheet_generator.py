@@ -182,7 +182,17 @@ def build_timesheet(cfg: dict, ts_cfg: dict) -> tuple[openpyxl.Workbook, str]:
 
 
 def send_email(from_addr: str, to_addr: str, subject: str, body: str, attachments: list[str]):
-    """Send email with optional attachments via SMTP."""
+    """Send email with attachments via SMTP (configurable via env vars)."""
+    import os
+    host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
+    port = int(os.environ.get("SMTP_PORT", "587"))
+    user = os.environ.get("SMTP_USER")
+    password = os.environ.get("SMTP_PASS")
+
+    if not user or not password:
+        print(f"[SMTP credentials missing — skipping email to {to_addr}]", file=sys.stderr)
+        return
+
     msg = MIMEMultipart()
     msg["From"] = from_addr
     msg["To"] = to_addr
@@ -195,16 +205,11 @@ def send_email(from_addr: str, to_addr: str, subject: str, body: str, attachment
         encoders.encode_base64(part)
         part.add_header("Content-Disposition", f'attachment; filename="{os.path.basename(path)}"')
         msg.attach(part)
-    # Send via SMTP (defaults to localhost; adjust in production)
-    try:
-        with smtplib.SMTP("localhost") as s:
-            s.send_message(msg)
-    except ConnectionRefusedError:
-        # Fallback: print what would be sent (for dry-run / dev)
-        print(f"[SMTP unavailable — mail would be sent to {to_addr}]")
-        print(f"  Subject: {subject}")
-        for a in attachments:
-            print(f"  Attachment: {a}")
+
+    with smtplib.SMTP(host, port) as s:
+        s.starttls()
+        s.login(user, password)
+        s.send_message(msg)
 
 
 def main():
@@ -213,6 +218,7 @@ def main():
     parser = argparse.ArgumentParser(description="Generate monthly timesheets and email them.")
     parser.add_argument("--config", default="config.yaml", help="Path to config.yaml")
     parser.add_argument("--dry-run", action="store_true", help="Generate files without emailing")
+    parser.add_argument("--email", action="store_true", help="Send emails (requires SMTP_HOST, SMTP_USER, SMTP_PASS env vars)")
     args = parser.parse_args()
 
     try:
@@ -234,20 +240,25 @@ def main():
         print("ERROR: No timesheets generated.", file=sys.stderr)
         sys.exit(1)
 
+    if not args.email and not args.dry_run:
+        # Default: generate files but don't email (development mode)
+        print(f"\n[Development mode — files generated, email skipped. Add --email to send.]")
+
     if args.dry_run:
         print(f"\n[Dry-run mode — skipped email. {len(outputs)} file(s) generated.]")
         return
 
-    # Email
-    recipient = "mohit.official143@gmail.com"
-    from_addr = recipient  # same as recipient for dev (set to SMTP auth in prod)
-    # Subject/body per timesheet month
-    for path in outputs:
-        month_label = Path(path).stem.replace("Timesheet_", "").split("_")[0]
-        subject = f"Timesheets for {month_label} — {cfg['employee']['name']}"
-        body = f"timesheet of {month_label} — {cfg['employee']['name']}"
-        send_email(from_addr, recipient, subject, body, [path])
-        print(f"Emained: {path} -> {recipient}")
+    if args.email:
+        # Email
+        recipient = cfg["employee"].get("email", "mohit.official143@gmail.com")
+        from_addr = os.environ.get("SMTP_USER", recipient)
+        # Subject/body per timesheet month
+        for path in outputs:
+            month_label = Path(path).stem.replace("Timesheet_", "").split("_")[0]
+            subject = f"Timesheets for {month_label} — {cfg['employee']['name']}"
+            body = f"timesheet of {month_label} — {cfg['employee']['name']}"
+            send_email(from_addr, recipient, subject, body, [path])
+            print(f"Emained: {path} -> {recipient}")
 
 
 if __name__ == "__main__":

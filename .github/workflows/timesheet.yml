@@ -2,8 +2,9 @@ name: Generate & Email Timesheets
 
 on:
   schedule:
-    # Run on the 1st of every month at 09:00 UTC
-    - cron: "0 9 1 * *"
+    # Run on the 1st of every month at 09:00 IST (UTC+5:30)
+    # 9:00 AM IST = 3:30 AM UTC
+    - cron: "30 3 1 * *"
   workflow_dispatch:  # manual trigger always available
 
 jobs:
@@ -31,4 +32,4 @@ jobs:
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
-        run: python timesheet_generator.py
+        run: python timesheet_generator.py --email
