@@ -72,11 +72,13 @@ A: WEEKDAY   B: DATE       C: LOG-IN TIMINGS   D: LOG-OUT TIMINGS   E: Total Hou
 
 ### 4.5 Bottom Summary Row
 ```
-A: Total Leaves    B: <count of leave-type rows>    C-F: empty
+A: Total Leaves    B: <count of leave-type rows>    C: <comma-separated leave reasons>
 ```
-Example: `Total Leaves | 1`
+Example: `Total Leaves | 1 | Medical leave`
 
-No additional detail row beyond this — leave reasons are already in the `Remarks` column per row.
+> The count and the leave **reasons** are both shown in the summary row.  
+> Leave reasons come from the `leaves[*].type` config field (title-cased, e.g. `Medical leave`, `Earned Leave`), not from the per-row `Remarks` column.  
+> Weekends are **not** counted.
 
 ### 4.6 Column Widths
 ```
@@ -180,7 +182,7 @@ on:
 | Leave fill | `#FCE4D6` on all 6 cells, Remarks = leave type (title-cased) |
 | Friday hours | 8, log-out = `5:30:00 PM` |
 | Mon–Thu hours | 9, log-out = `6:30:00 PM` |
-| Total Leaves row | Present at last non-empty row, count matches leave-type days |
+| Total Leaves row | Present at last non-empty row, count matches leave-type days, reasons listed in column C |
 | Column widths | A=15, B=15, C=18, D=18, E=12, F=20 |
 | Merge A1:F1 | Present |
 | No extra rows after summary | Empty rows not written |

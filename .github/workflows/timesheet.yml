@@ -1,0 +1,34 @@
+name: Generate & Email Timesheets
+
+on:
+  schedule:
+    # Run on the 1st of every month at 09:00 UTC
+    - cron: "0 9 1 * *"
+  workflow_dispatch:  # manual trigger always available
+
+jobs:
+  generate-and-email:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run generator (dry-run to validate)
+        run: python timesheet_generator.py --dry-run
+
+      - name: Run tests
+        run: python -m pytest tests/ -v
+
+      - name: Generate and email timesheets
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+        run: python timesheet_generator.py
