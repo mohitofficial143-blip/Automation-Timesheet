@@ -1,19 +1,19 @@
 employee:
-  name: "Mohit Banra"
-  id: "FFE520"
-  client: "Partnr"
-  location: "Gurugram"
-
+  name: Mohit Banra
+  id: FFE520
+  client: Partnr
+  location: Gurugram
 timesheets:
-  - name: "Timesheet_1"
-    start: "2026-08-01"
-    end: "2026-08-31"
-  - name: "Timesheet_2"
-    start: "2026-07-26"
-    end: "2026-08-26"
-
+- name: Timesheet_1
+  start: '2026-10-01'
+  end: '2026-10-31'
+- name: Timesheet_2
+  start: '2026-09-26'
+  end: '2026-10-26'
 leaves:
-  - date: "2026-08-06"
-    type: "Earned Leave"
-  - date: "2026-08-27"
-    type: "Medical Leave"
+- date: '2026-08-06'
+  type: Earned Leave
+- date: '2026-08-27'
+  type: Medical Leave
+- date: '2026-10-02'
+  type: Office Holiday
